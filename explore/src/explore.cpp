@@ -103,10 +103,11 @@ Explore::Explore()
   status_qos.transient_local();
   status_pub_ = this->create_publisher<explore_lite_msgs::msg::ExploreStatus>("explore/status", status_qos);
 
-  // Subscription to resume or stop exploration
-  resume_subscription_ = this->create_subscription<std_msgs::msg::Bool>(
-      "explore/resume", 10,
-      std::bind(&Explore::resumeCallback, this, std::placeholders::_1));
+  // Service to resume or stop exploration (set data=true to start, false to stop)
+  resume_service_ = this->create_service<std_srvs::srv::SetBool>(
+      "explore/resume",
+      std::bind(&Explore::resumeCallback, this,
+                std::placeholders::_1, std::placeholders::_2));
 
   RCLCPP_INFO(logger_, "Waiting to connect to move_base nav2 server");
   move_base_client_->wait_for_action_server();
@@ -131,12 +132,12 @@ Explore::Explore()
 
   exploring_timer_ = this->create_wall_timer(
       std::chrono::milliseconds((uint16_t)(1000.0 / planner_frequency_)),
-      [this]() { makePlan(); });
+      [this]() { makePlan(); },nullptr,false);
   // Start exploration right away
   auto status_msg = explore_lite_msgs::msg::ExploreStatus();
-  status_msg.status = explore_lite_msgs::msg::ExploreStatus::EXPLORATION_STARTED;
+  status_msg.status = explore_lite_msgs::msg::ExploreStatus::EXPLORATION_PAUSED;
   status_pub_->publish(status_msg);
-  makePlan();
+  // makePlan();
 }
 
 Explore::~Explore()
@@ -144,17 +145,23 @@ Explore::~Explore()
   stop();
 }
 
-void Explore::resumeCallback(const std_msgs::msg::Bool::SharedPtr msg)
+void Explore::resumeCallback(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+    std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
-  if (msg->data) {
+  if (request->data) {
     resume();
+    response->success = true;
+    response->message = "Exploration resumed.";
   } else {
     stop();
+    response->success = true;
+    response->message = "Exploration stopped.";
   }
 }
 
 void Explore::visualizeFrontiers(
-    const std::vector<frontier_exploration::Frontier>& frontiers)
+const std::vector<frontier_exploration::Frontier>& frontiers)
 {
   const auto blue = std_msgs::msg::ColorRGBA().set__b(1.0).set__a(0.5);
   const auto red = std_msgs::msg::ColorRGBA().set__r(1.0).set__a(0.5);

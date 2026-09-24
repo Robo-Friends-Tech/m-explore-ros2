@@ -49,6 +49,7 @@
 #include <geometry_msgs/msg/point.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 #include <std_msgs/msg/color_rgba.hpp>
 #include <string>
 #include <visualization_msgs/msg/marker_array.hpp>
@@ -124,8 +125,10 @@ private:
   rclcpp::TimerBase::SharedPtr exploring_timer_;
   // rclcpp::TimerBase::SharedPtr oneshot_;
 
-  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr resume_subscription_;
-  void resumeCallback(const std_msgs::msg::Bool::SharedPtr msg);
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr resume_service_;
+   void resumeCallback(
+       const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+       std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
   std::vector<geometry_msgs::msg::Point> frontier_blacklist_;
   geometry_msgs::msg::Point prev_goal_;

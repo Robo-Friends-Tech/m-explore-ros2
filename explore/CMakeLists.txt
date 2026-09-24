@@ -43,6 +43,7 @@ find_package(nav_msgs REQUIRED)
 find_package(map_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nav2_costmap_2d REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(explore_lite_msgs REQUIRED)
 
 set(DEPENDENCIES
@@ -55,6 +56,7 @@ set(DEPENDENCIES
   nav_msgs
   map_msgs
   nav2_costmap_2d
+  std_srvs
   visualization_msgs
 )
 
@@ -94,6 +96,7 @@ target_link_libraries(explore PUBLIC
   ${nav2_msgs_TARGETS}
   ${nav_msgs_TARGETS}
   ${std_msgs_TARGETS}
+  ${std_srvs_TARGETS}
   ${visualization_msgs_TARGETS}
   nav2_costmap_2d::filters
   rclcpp::rclcpp
@@ -139,6 +142,7 @@ ament_export_dependencies(
   nav_msgs
   rclcpp
   std_msgs
+  std_srvs
   tf2
   tf2_ros
   visualization_msgs
